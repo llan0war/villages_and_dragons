@@ -10,7 +10,7 @@ class Village(object):
     peoples = 0
     warriors = 0
     structures = dict()
-    settle = False
+    settler = {'ready': False}
     buffs = {}
     gold_inc = 0
     ppl_inc = 0
@@ -32,13 +32,19 @@ class Village(object):
         self.build('farm')
 
     def stat(self):
-        prog = ''
+        prog = 'Village %s with %s (%s) gold %s (%s) peoples' % \
+               (self.name, str(int(self.gold)), str(self.gold_inc), str(int(self.peoples)), str(self.ppl_inc))
+        if self.warriors > 0 or self.warrior_inc > 0:
+            prog = prog + ' and %s (%s) warriors' % (str(int(self.warriors)), str(self.warrior_inc))
         for i, j in self.structures.iteritems():
-            prog = prog + ' ' + str(j)
-        print 'Village %s with %s gold %s peoples progress %s' % (self.name, str(int(self.gold)), str(int(self.peoples)), prog)
+            if j['count'] > 0:
+                prog = prog + ' ' + i + ':' + str(j['enabled']) + '/' + str(j['count'])
+        if self.settler['ready']:
+            prog = prog + ' and settler'
+        return prog
 
     def turn(self):
-        #self.stat()
+        print self.stat()
         if random.randint(1,10) == 1:
             self.re_calc()
         for key in self.structures.keys():
@@ -48,19 +54,18 @@ class Village(object):
 
     def enable_struct(self, key):
         #gold check
-        if self.structures[key]['enabled'] * self.buildings[key][3] < 0:
-            if self.structures[key]['enabled'] * self.buildings[key][3] + self.gold < 0:
+        if self.structures[key]['enabled'] * self.buildings[key][3] < 0: #posibly lack of gold
+            if self.structures[key]['enabled'] * self.buildings[key][3] + self.gold < 0: #possibly out of moneys
                 if self.structures[key]['enabled'] > 0:
                     self.structures[key]['enabled'] -= 1
             elif self.structures[key]['enabled'] < self.structures[key]['count']:
                 self.structures[key]['enabled'] += 1
-        if self.structures[key]['enabled'] * self.buildings[key][4] < 0:
+        if self.structures[key]['enabled'] * self.buildings[key][4] < 0: #same for peoples
             if self.structures[key]['enabled'] * self.buildings[key][4] + self.peoples < 0:
                 if self.structures[key]['enabled'] > 0:
                     self.structures[key]['enabled'] -= 1
             elif self.structures[key]['enabled'] < self.structures[key]['count']:
                 self.structures[key]['enabled'] += 1
-
 
     def calc(self):
         self.gold += self.gold_inc
@@ -94,20 +99,34 @@ class Village(object):
         if decision == 1:
             self.build(self.choise_building())
         elif decision == 2:
-            self.settle = True
+            self.settle()
         #checkbalance
         else:
             pass
 
+    def settle(self):
+        print 'Village %s choose to settle new village ' % self.name,
+        if self.gold > 250 and self.peoples > 30 and not self.settler['ready']:
+            self.settler['gold'] = int(self.gold / 2)
+            self.settler['peoples'] = int(self.peoples / 2)
+            self.settler['ready'] = True
+            self.gold -= self.settler['gold']
+            self.peoples -= self.settler['peoples']
+            print 'with %s gold and %s peoples' % (self.settler['gold'], self.settler['peoples'])
+        else:
+            print ' but not have such resources'
+
     def choise_building(self):
         if self.peoples < 20 or self.ppl_inc < 1:
-            self.build('house')
+            return 'house'
         elif self.gold < 50 or self.gold_inc < 5:
-            self.build('smith')
+            return 'smith'
         elif self.buildings['house'] > self.buildings['barracks'] * 10:
-            self.build('barracks')
+            return 'barracks'
         elif random.randint(1, 10) > 3:
-            self.build('farm')
+            return 'farm'
+        else:
+            return random.choice(self.buildings.keys())
 
     def build(self, type):
         print 'Village %s choose to build %s' % (self.name, type),
@@ -120,6 +139,9 @@ class Village(object):
                         self.structures[type]['enabled'] += 1
                         self.gold -= self.buildings[type][0]
                         self.peoples -= self.buildings[type][2]
+                        self.gold_inc += self.buildings[type][3]
+                        self.ppl_inc += self.buildings[type][4]
+                        self.warrior_inc += self.buildings[type][5]
                     else:
                         print ' but not all enabled'
                 else:
