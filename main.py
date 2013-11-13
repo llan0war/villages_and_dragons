@@ -28,7 +28,7 @@ class Runner(threading.Thread):
 
     def run(self):
         while not self.stopped.wait(1):
-            print 'next turn for %s villages and %s settlers' % (len(_VILLAGES), get_settlers_num())
+            #print 'next turn for %s villages and %s settlers' % (len(_VILLAGES), get_settlers_num(_VILLAGES))
             settle_check = random.randint(1, 10)
             for obj in self.data:
                 obj.turn()
@@ -45,32 +45,38 @@ class Runner(threading.Thread):
         return False
 
 
-def get_settlers_num():
+def get_settlers_num(obj):
     res = 0
-    for vill in _VILLAGES:
+    for vill in obj:
         if vill.settler['ready']:
             res += 1
     return res
 
 
 def sellte(village):
-    add_vilage(village.settler['gold'], village.settler['peoples'])
+    add_vilage(village.settler['gold'], village.settler['peoples'], village.settler['name'])
     village.settler['ready'] = False
 
 
-def get_name():
+def get_name(pref=''):
     def all_names():
         return [vill.name for vill in _VILLAGES]
 
+    def check_history(name):
+        if name.split(' - ') > 2:
+            return name.split(' - ')[-1]
+        else:
+            return name
+
     found = False
     tries = 0
-    res = random.choice(vill_name_dict['part1']) + random.choice(vill_name_dict['part2'])
+    res = check_history(pref + random.choice(vill_name_dict['part1']) + random.choice(vill_name_dict['part2']))
     while not found:
         #for vill in _VILLAGES:
         #   if vill.name == res:
         #       res = random.choice(vill_name_dict['part1']) + random.choice(vill_name_dict['part2'])
         if res in all_names():
-            res = random.choice(vill_name_dict['part1']) + random.choice(vill_name_dict['part2'])
+            res = check_history(pref + random.choice(vill_name_dict['part1']) + random.choice(vill_name_dict['part2']))
             tries += 1
         else:
             found = True
@@ -80,8 +86,8 @@ def get_name():
     return res
 
 
-def add_vilage(gold=25, ppl=3):
-    _VILLAGES.append(village2.Village(get_name(), gold, ppl))
+def add_vilage(gold=25, ppl=3, name=''):
+    _VILLAGES.append(village2.Village(get_name(name), gold, ppl))
 
 
 def init():
