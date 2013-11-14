@@ -1,3 +1,4 @@
+import pickle
 import random
 import time
 import datetime
@@ -8,8 +9,6 @@ import dragon2
 import world
 import village2
 import threading
-from dataobjects import vill_name_dict
-
 
 _VILLAGES = []
 _LAIRS = []
@@ -18,6 +17,7 @@ STARTTIME = datetime.datetime.now()
 init_villages = True
 init_lairs = False
 stopped = threading.Event()
+vill_backup = None
 
 
 class Runner(threading.Thread):
@@ -25,19 +25,29 @@ class Runner(threading.Thread):
         threading.Thread.__init__(self)
         self.data = data
         self.stopped = event
+        self.turn_id = 0
 
     def run(self):
         while not self.stopped.wait(1):
-            #print 'next turn for %s villages and %s settlers' % (len(_VILLAGES), get_settlers_num(_VILLAGES))
+            print self.turn_id, ' turn for %s villages and %s settlers' % (len(self.data), self.get_settlers_num(self.data))
             settle_check = random.randint(1, 10)
+            self.turn_id += 1
             for obj in self.data:
                 obj.turn()
                 if settle_check == 1:
                     if obj.settler['ready']:
                         sellte(obj)
+            if self.turn_id == 42:
+                name = 'db\\' + str(random.randint(10000, 99999)) + '.' + self.name + '.dump'
+                with open(name, 'w+') as f:
+                    pickle.dump(self.data[-1], f)
+                vill_backup = name
+                print '--> backuped', self.data[-1].name
+            if self.turn_id == 84:
+                print '--> restoring ', vill_backup, ' to ', self.data[0].name
+                with open(vill_backup, 'r') as f:
+                    self.data[0] = pickle.load(f)
 
-            #if self.checktime(STARTTIME, random.randint(15, 60)):
-            #    pass
 
     def checktime(self, prev, per):
         if (datetime.datetime.now() - prev) > datetime.timedelta(seconds=per):
@@ -45,12 +55,12 @@ class Runner(threading.Thread):
         return False
 
 
-def get_settlers_num(obj):
-    res = 0
-    for vill in obj:
-        if vill.settler['ready']:
-            res += 1
-    return res
+    def get_settlers_num(self, obj):
+        res = 0
+        for vill in obj:
+            if vill.settler['ready']:
+                res += 1
+        return res
 
 
 def sellte(village):
@@ -59,6 +69,8 @@ def sellte(village):
 
 
 def get_name(pref=''):
+    from dataobjects import vill_name_dict
+
     def all_names():
         return [vill.name for vill in _VILLAGES]
 
@@ -92,6 +104,7 @@ def add_vilage(gold=25, ppl=3, name=''):
 
 def init():
     if init_villages:
+        _VILLAGES.append(village2.Village(get_name()))
         _VILLAGES.append(village2.Village(get_name()))
         _THREADS.append(Runner(_VILLAGES, stopped))
         _THREADS[-1].start()
