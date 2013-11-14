@@ -23,7 +23,7 @@ class Village(object):
     for key, data in buildings.iteritems():
         structures[key] = {'count': 0, 'enabled': 0}
 
-    def __init__(self, name, wealth=25, settlers=3, coords=[0, 0]):
+    def __init__(self, name, wealth=125, settlers=5, coords=[0, 0]):
         self.name = name
         self.gold = wealth
         self.peoples = settlers
@@ -38,7 +38,7 @@ class Village(object):
     def stat(self):
         prog = 'Village %s with %s (%s) gold %s (%s) peoples' % \
                (self.name, str(int(self.gold)), str(self.gold_inc), str(int(self.peoples)), str(self.ppl_capacity))
-        if self.warriors > 0 or self.warrior_inc > 0:
+        if self.warriors > 0 or self.warr_capacity > 0:
             prog = prog + ' and %s (%s) warriors' % (str(int(self.warriors)), str(self.warr_capacity))
         for i, j in self.structures.iteritems():
             if j['count'] > 0:
@@ -48,7 +48,7 @@ class Village(object):
         return prog
 
     def turn(self):
-        #print self.stat()
+        print self.stat()
         if random.randint(1, 10) == 1:
             self.re_calc()
             self.calc_EV()
@@ -65,7 +65,7 @@ class Village(object):
 
     def enable_struct(self, key):
         #gold check
-        if self.structures[key]['enabled'] * self.buildings[key][3] < 0: #posibly lack of gold
+        if self.buildings[key][3] < 0: #posibly lack of gold
             if self.structures[key]['enabled'] * self.buildings[key][3] + self.gold < 0: #possibly out of moneys
                 if self.structures[key]['enabled'] > 0:
                     self.structures[key]['enabled'] -= 1
@@ -73,7 +73,7 @@ class Village(object):
             elif self.structures[key]['enabled'] < self.structures[key]['count']:
                 self.structures[key]['enabled'] += 1
                 print self.name, ' enable ', key, ' by gold'
-        if self.structures[key]['enabled'] * self.buildings[key][4] < 0: #same for peoples
+        if self.buildings[key][4] < 0: #same for peoples
             if self.structures[key]['enabled'] * self.buildings[key][4] + self.peoples < 0:
                 if self.structures[key]['enabled'] > 0:
                     self.structures[key]['enabled'] -= 1
@@ -101,7 +101,7 @@ class Village(object):
 
     def warr_growth(self):
         if self.structures['smith']['enabled'] > 0:
-            recrut = min(self.structures['smith']['enabled'], self.warriors - self.warr_capacity, self.peoples - 5)
+            recrut = min(self.structures['smith']['enabled'], self.warr_capacity - self.warriors, self.peoples - 5)
             if recrut > 0:
                 self.peoples -= recrut
                 return recrut
@@ -132,11 +132,11 @@ class Village(object):
             if self.EV > 100:
                 self.settle()
         elif decision == 3:
-            if self.gold > 1:
+            if self.gold > 50:
                 gold_loss = random.randint(1, int(self.gold))
             else:
-                gold_loss = 1
-            if self.peoples > 1:
+                gold_loss = self.gold / 2
+            if self.peoples > 10:
                 ppl_loss = random.randint(0, int(self.peoples - 1))
             else:
                 ppl_loss = 0
