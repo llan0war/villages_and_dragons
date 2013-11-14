@@ -38,7 +38,7 @@ class Runner(threading.Thread):
                     if obj.settler['ready']:
                         sellte(obj)
             if self.turn_id == 42:
-                name = 'db\\' + str(random.randint(10000, 99999)) + '.' + self.name + '.dump'
+                name = 'db\\' + str(random.randint(10000, 99999)) + '.' + self.data[-1].name + '.dump'
                 with open(name, 'w+') as f:
                     pickle.dump(self.data[-1], f)
                 vill_backup = name
