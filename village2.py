@@ -6,41 +6,36 @@ __author__ = 'a.libkind'
 class Village(object):
     from dataobjects import load_all
     buildings = load_all()
-    coords = [0, 0]
-    gold = 0
-    peoples = 0
-    warriors = 0
-    structures = dict()
-    settler = {'ready': False}
-    buffs = {}
-    gold_inc = 0
-    #ppl_inc = 0
-    #warrior_inc = 0
-    ppl_capacity = 0
-    warr_capacity = 0
-    EV = 0 #economic value
-    recalc_needed = False
-    data = dict()
-
-    for key in buildings.keys():
-        structures[key] = {'count': 0, 'enabled': 0}
 
     def __init__(self, name, wealth=125, settlers=5, coords=[0, 0]):
         self.name = name
         self.gold = wealth
         self.peoples = settlers
-        self.create()
         self.coords = coords
+
         self.data_init()
+        self.create()
 
     def data_init(self):
-        self.data["coords"] = self.coords
-        self.data["gold"] = self.gold
-        self.data["peoples"] = self.peoples
-        self.data["warriors"] = self.warriors
-        self.data["structures"] = self.structures
-        self.data["settler"] = self.settler
-        self.data["buffs"] = self.buffs
+        self.warriors = 0
+        self.gold_inc = 0
+        self.ppl_capacity = 0
+        self.warr_capacity = 0
+        self.EV = 0 #economic value
+        self.recalc_needed = False
+        self.data_array = {}
+        self.structures = {}
+        self.buffs = {}
+        self.settler = {'ready': False}
+        for key in self.buildings.keys():
+            self.structures[key] = {'count': 0, 'enabled': 0}
+        self.data_array["coords"] = self.coords
+        self.data_array["gold"] = self.gold
+        self.data_array["peoples"] = self.peoples
+        self.data_array["warriors"] = self.warriors
+        self.data_array["structures"] = self.structures
+        self.data_array["settler"] = self.settler
+        self.data_array["buffs"] = self.buffs
 
     def create(self):
         coords = [0, 0]
