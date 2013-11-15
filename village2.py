@@ -14,13 +14,15 @@ class Village(object):
     settler = {'ready': False}
     buffs = {}
     gold_inc = 0
-    ppl_inc = 0
-    warrior_inc = 0
+    #ppl_inc = 0
+    #warrior_inc = 0
     ppl_capacity = 0
     warr_capacity = 0
     EV = 0 #economic value
+    recalc_needed = False
+    data = dict()
 
-    for key, data in buildings.iteritems():
+    for key in buildings.keys():
         structures[key] = {'count': 0, 'enabled': 0}
 
     def __init__(self, name, wealth=125, settlers=5, coords=[0, 0]):
@@ -29,6 +31,16 @@ class Village(object):
         self.peoples = settlers
         self.create()
         self.coords = coords
+        self.data_init()
+
+    def data_init(self):
+        self.data["coords"] = self.coords
+        self.data["gold"] = self.gold
+        self.data["peoples"] = self.peoples
+        self.data["warriors"] = self.warriors
+        self.data["structures"] = self.structures
+        self.data["settler"] = self.settler
+        self.data["buffs"] = self.buffs
 
     def create(self):
         coords = [0, 0]
@@ -49,9 +61,11 @@ class Village(object):
 
     def turn(self):
         print self.stat()
-        if random.randint(1, 10) == 1:
+        if random.randint(1,10) == 5: self.recalc_needed = True
+        if self.recalc_needed:
             self.re_calc()
             self.calc_EV()
+            self.recalc_needed = False
         for key in self.structures.keys():
             self.enable_struct(key)
         self.calc()
@@ -109,18 +123,9 @@ class Village(object):
                 return 0
 
     def re_calc(self):
-        def count_enabled(type):
-            res = 0
-            for obj in type:
-                if type['enabled']:
-                    res += 1
-            return res
-
         gold_inc = 0 #3
-
         for key in self.structures.keys():
             gold_inc = gold_inc + self.structures[key]['enabled'] * self.buildings[key][3]
-
         self.gold_inc = gold_inc
 
     def logic(self):
