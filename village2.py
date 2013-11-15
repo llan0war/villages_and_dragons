@@ -175,17 +175,17 @@ class Village(object):
     def build(self, type):
         print 'Village %s choose to build %s' % (self.name, type),
         if type in self.buildings.keys():
-            if self.gold >= self.buildings[type][0]:
+            if self.gold >= self.buildings[type][0] * (1.03 ** self.structures[type]['count']):
                 if self.peoples >= self.buildings[type][2]:
                     if self.structures[type]['count'] == self.structures[type]['enabled']:
                         print 'successfully'
-                        self.structures[type]['count'] += 1
-                        self.structures[type]['enabled'] += 1
-                        self.gold -= self.buildings[type][0]
+                        self.gold -= self.buildings[type][0] * (1.03 ** self.structures[type]['count'])
                         self.peoples -= self.buildings[type][2]
                         self.gold_inc += self.buildings[type][3]
                         self.ppl_capacity += self.buildings[type][4]
                         self.warr_capacity += self.buildings[type][5]
+                        self.structures[type]['count'] += 1
+                        self.structures[type]['enabled'] += 1
                     else:
                         print ' but not all enabled'
                 else:
