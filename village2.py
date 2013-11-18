@@ -26,7 +26,7 @@ class Village(object):
         self.data_array = {}
         self.structures = {}
         self.buffs = {}
-        self.settler = {'ready': False}
+        self.settler = {'ready': False, 'count': 2}
         for key in self.buildings.keys():
             self.structures[key] = {'count': 0, 'enabled': 0}
         self.data_array["coords"] = self.coords
@@ -52,6 +52,7 @@ class Village(object):
                 prog = prog + ' ' + i + ':' + str(j['enabled']) + '/' + str(j['count'])
         if self.settler['ready']:
             prog = prog + ' and settler'
+        prog = prog + ' with total EV ' + str(self.EV)
         return prog
 
     def turn(self):
@@ -67,10 +68,11 @@ class Village(object):
         self.logic()
 
     def calc_EV(self):
-        EV = self.gold * 0.1 + self.peoples
+        EV = self.gold * 0.1 + self.peoples + self.warriors * 2
         for key in self.structures:
             EV += self.structures[key]['enabled'] * self.buildings[key][0] * 0.4
             EV += self.structures[key]['count'] * self.buildings[key][0] * 0.1
+        self.EV = EV
 
     def enable_struct(self, key):
         #gold check
@@ -99,23 +101,25 @@ class Village(object):
             self.warriors += self.warr_growth()
 
     def ppl_growth(self):
-        if self.peoples < 1:
+        if self.peoples < 10:
             if self.warriors > 0:
                 self.warriors -= 1
                 return 1
             else:
-                return 0.01
+                return 0.5
         else:
-            return float(int(self.peoples / 2)) / 30 + 0.01
+            return float(int(self.peoples / 2) + int(self.warriors / 4)) / 30 + 0.01 * self.structures['house']['count']
 
     def warr_growth(self):
         if self.structures['smith']['enabled'] > 0:
-            recrut = min(self.structures['smith']['enabled'], self.warr_capacity - self.warriors, self.peoples - 5)
+            recrut = min(self.structures['smith']['enabled'], self.warr_capacity - self.warriors, self.peoples - 10)
             if recrut > 0:
                 self.peoples -= recrut
                 return recrut
             else:
                 return 0
+        else:
+            return 0
 
     def re_calc(self):
         gold_inc = 0 #3
@@ -135,37 +139,60 @@ class Village(object):
             if self.gold > 50:
                 gold_loss = random.randint(1, int(self.gold))
             else:
-                gold_loss = self.gold / 2
-            if self.peoples > 10:
-                ppl_loss = random.randint(0, int(self.peoples - 1))
+                gold_loss = int(self.gold / 2)
+            if self.peoples > 25:
+                ppl_loss = random.randint(0, int(self.peoples / 2 - 1))
             else:
                 ppl_loss = 0
             print self.name, ' celebrating for ', gold_loss, ' gold with ', ppl_loss, ' casualities'
             self.gold -= gold_loss
             self.peoples -= ppl_loss
+        elif decision == 4:
+            if self.warriors > 0:
+                self.raid()
+        elif decision == 10:
+            self.logic()
+            self.logic()
         else:
             pass
 
+    def raid(self):
+        chance_find_target = self.EV - random.randint(0, 1000)
+        if chance_find_target > 0: #target found
+            enemy_strength = random.randint(0, 100)
+            if self.warriors * random.randint(1, 5) - enemy_strength > 0:
+                prize_gold = random.randint(10, 50) * enemy_strength * 0.1
+                prize_ppl = 0
+                if random.randint(1,10) > 5:
+                    prize_ppl = random.randint(1, 5)
+                print self.name + ' found enemy and win for ' + str(prize_gold) + ' gold ' + str(prize_ppl) + ' ppl'
+                self.gold += prize_gold
+                self.peoples += prize_ppl
+            else:
+                self.warriors = int(self.warriors * random.randint(1,5) / 10)
+                print self.name + ' found enemy and fail'
+
     def settle(self):
-        print 'Village %s choose to settle new village ' % self.name,
-        if self.gold > 500 and self.peoples > 30 and not self.settler['ready']:
-            self.gold -= 300
-            self.settler['gold'] = int(self.gold / 2)
-            self.settler['peoples'] = int(self.peoples / 2)
-            self.settler['name'] = self.name + ' - '
-            self.settler['ready'] = True
-            self.gold -= self.settler['gold']
-            self.peoples -= self.settler['peoples']
-            print 'with %s gold and %s peoples' % (self.settler['gold'], self.settler['peoples'])
-        else:
-            print ' but not have such resources'
+        if self.settler['count'] > 0:
+            print 'Village %s choose to settle new village ' % self.name,
+            if self.gold > 500 and self.peoples > 30 and not self.settler['ready']:
+                self.gold -= 300
+                self.settler['gold'] = int(self.gold / 2)
+                self.settler['peoples'] = int(self.peoples / 2)
+                self.settler['name'] = self.name + ' - '
+                self.settler['ready'] = True
+                self.gold -= self.settler['gold']
+                self.peoples -= self.settler['peoples']
+                print 'with %s gold and %s peoples' % (self.settler['gold'], self.settler['peoples'])
+            else:
+                print ' but not have such resources'
 
     def choise_building(self):
         if self.ppl_capacity - self.peoples < 5:
             return 'house'
         elif self.gold < 50 or self.gold_inc < 5:
             return 'smith'
-        elif self.warr_capacity - self.warriors < 3:
+        elif self.warr_capacity - self.warriors < 2:
             return 'barracks'
         elif random.randint(1, 10) > 3:
             return 'farm'

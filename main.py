@@ -43,10 +43,10 @@ class Runner(threading.Thread):
                     pickle.dump(self.data[-1], f)
                 vill_backup = name
                 print '--> backuped', self.data[-1].name
-            if self.turn_id == 84:
+            '''if self.turn_id == 84:
                 print '--> restoring ', vill_backup, ' to ', self.data[0].name
                 with open(vill_backup, 'r') as f:
-                    self.data[0] = pickle.load(f)
+                    self.data[0] = pickle.load(f)'''
 
 
     def checktime(self, prev, per):
@@ -66,6 +66,7 @@ class Runner(threading.Thread):
 def sellte(village):
     add_vilage(village.settler['gold'], village.settler['peoples'], village.settler['name'])
     village.settler['ready'] = False
+    village.settler['count'] -= 1
 
 
 def get_name(pref=''):

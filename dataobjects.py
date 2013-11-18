@@ -56,7 +56,7 @@ if __name__ == '__main__':
 
     #dump_all(buildings)
     buildings2 = load_all()
-    print buildings
+    #print buildings
     print buildings2
 
 
