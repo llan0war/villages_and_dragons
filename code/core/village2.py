@@ -7,6 +7,8 @@ __author__ = 'a.libkind'
 class Village(object):
     from villages_and_dragons.code.core.dataobjects import load_all
     buildings = load_all()
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
 
     def __init__(self, name, wealth=125, settlers=5, coords=[0, 0]):
         self.name = name
@@ -16,6 +18,7 @@ class Village(object):
 
         self.data_init()
         self.create()
+
 
     def data_init(self):
         self.warriors = 0
@@ -58,7 +61,7 @@ class Village(object):
         return prog
 
     def turn(self):
-        logging.debug(self.stat())
+        self.logger.debug(self.stat())
         if random.randint(1,10) == 5:
             self.recalc_needed = True
         if self.recalc_needed:
@@ -83,18 +86,18 @@ class Village(object):
             if self.structures[key]['enabled'] * self.buildings[key][3] + self.gold < 0: #possibly out of moneys
                 if self.structures[key]['enabled'] > 0:
                     self.structures[key]['enabled'] -= 1
-                    logging.warning(self.name, ' disable ', key, ' by gold')
+                    self.logger.warning(self.name, ' disable ', key, ' by gold')
             elif self.structures[key]['enabled'] < self.structures[key]['count']:
                 self.structures[key]['enabled'] += 1
-                logging.warning(self.name, ' enable ', key, ' by gold')
+                self.logger.warning(self.name, ' enable ', key, ' by gold')
         if self.buildings[key][4] < 0: #same for peoples
             if self.structures[key]['enabled'] * self.buildings[key][4] + self.peoples < 0:
                 if self.structures[key]['enabled'] > 0:
                     self.structures[key]['enabled'] -= 1
-                    logging.warning(self.name, ' disable ', key, ' by ppl')
+                    self.logger.warning(self.name, ' disable ', key, ' by ppl')
             elif self.structures[key]['enabled'] < self.structures[key]['count']:
                 self.structures[key]['enabled'] += 1
-                logging.warning(self.name, ' enable ', key, ' by ppl')
+                self.logger.warning(self.name, ' enable ', key, ' by ppl')
 
     def calc(self):
         self.gold += self.gold_inc
@@ -147,7 +150,7 @@ class Village(object):
                 ppl_loss = random.randint(0, int(self.peoples / 2 - 1))
             else:
                 ppl_loss = 0
-            logging.info(self.name, ' celebrating for ', gold_loss, ' gold with ', ppl_loss, ' casualities')
+            self.logger.info('%s celebrating for %s gold with %s casualities', self.name, gold_loss, ppl_loss)
             self.gold -= gold_loss
             self.peoples -= ppl_loss
         elif decision == 4:
@@ -168,16 +171,15 @@ class Village(object):
                 prize_ppl = 0
                 if random.randint(1,10) > 5:
                     prize_ppl = random.randint(1, 5)
-                logging.info(self.name + ' found enemy and win for ' + str(prize_gold) + ' gold ' + str(prize_ppl) + ' ppl')
+                self.logger.info('%s found enemy and win for %s gold and %s ppl', self.name, str(prize_gold), str(prize_ppl))
                 self.gold += prize_gold
                 self.peoples += prize_ppl
             else:
                 self.warriors = int(self.warriors * random.randint(1,5) / 10)
-                logging.info(self.name + ' found enemy and fail')
+                self.logger.info(' %s found enemy and fail', self.name )
 
     def settle(self):
         if self.settler['count'] > 0:
-            logging.info('Village %s choose to settle new village ' % self.name)
             if self.gold > 500 and self.peoples > 30 and not self.settler['ready']:
                 self.gold -= 300
                 self.settler['gold'] = int(self.gold / 2)
@@ -186,9 +188,9 @@ class Village(object):
                 self.settler['ready'] = True
                 self.gold -= self.settler['gold']
                 self.peoples -= self.settler['peoples']
-                logging.info('%s send settler with %s gold and %s peoples' % (self.name, self.settler['gold'], self.settler['peoples']))
+                self.logger.info(' %s send settler with %s gold and %s peoples', self.name, self.settler['gold'], self.settler['peoples'])
             else:
-                logging.info(self.name + '  not have such resources to make settler')
+                self.logger.info(' %s not have such resources to make settler', self.name)
 
     def choise_building(self):
         if self.ppl_capacity - self.peoples < 5:
@@ -207,7 +209,7 @@ class Village(object):
             if self.gold >= self.buildings[type_build][0] * (1.03 ** self.structures[type_build]['count']):
                 if self.peoples >= self.buildings[type_build][2]:
                     if self.structures[type_build]['count'] == self.structures[type_build]['enabled']:
-                        logging.info('Village %s choose to build %s successfully' % (self.name, type_build))
+                        self.logger.info('Village %s choose to build %s successfully', self.name, type_build)
                         self.gold -= self.buildings[type_build][0] * (1.03 ** self.structures[type_build]['count'])
                         self.peoples -= self.buildings[type_build][2]
                         self.gold_inc += self.buildings[type_build][3]
@@ -216,8 +218,8 @@ class Village(object):
                         self.structures[type_build]['count'] += 1
                         self.structures[type_build]['enabled'] += 1
                     else:
-                        logging.info('Village %s choose to build %s but not all enabled' % (self.name, type_build))
+                        self.logger.info('Village %s choose to build %s but not all enabled', self.name, type_build)
                 else:
-                    logging.info('Village %s choose to build %s but no such peoples' % (self.name, type_build))
+                    self.logger.info('Village %s choose to build %s but no such peoples', self.name, type_build)
             else:
-                logging.info('Village %s choose to build %s but cannot affroid' % (self.name, type_build))
+                self.logger.info('Village %s choose to build %s but cannot affroid', self.name, type_build)

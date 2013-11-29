@@ -7,9 +7,10 @@ import threading
 
 __author__ = 'a.libkind'
 
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
-logging.info('Log started')
-
+logging.basicConfig(filename='myapp.log', level=logging.DEBUG)
+logger = logging.getLogger('Main thread')
+logger.setLevel(logging.DEBUG)
+logger.info('Log started')
 
 _VILLAGES = []
 _LAIRS = []
@@ -30,7 +31,7 @@ class Runner(threading.Thread):
 
     def run(self):
         while not self.stopped.wait(1):
-            logging.info(self.turn_id, ' turn for %s villages and %s settlers' % (len(self.data), self.get_settlers_num(self.data)))
+            logger.info(' %s turn for %s villages and %s settlers',self.turn_id, len(self.data), self.get_settlers_num(self.data))
             settle_check = random.randint(1, 10)
             self.turn_id += 1
             for obj in self.data:
@@ -107,10 +108,6 @@ def add_vilage(gold=25000, ppl=130, name=''):
 def start_log():
     name = str(STARTTIME).replace(':', '')
     print name
-    logging.basicConfig(filename='myapp.log', level=logging.DEBUG)
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-    logger.info('Log started')
 
 
 def init():
