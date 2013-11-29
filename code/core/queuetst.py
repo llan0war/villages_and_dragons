@@ -1,12 +1,12 @@
 __author__ = 'a.libkind'
 
-
-import threading
 import random
 import Queue
 import time
-from village import Village
 import datetime
+
+from villages_and_dragons.code.core.village import Village
+
 
 stat_check = datetime.datetime.now()
 active_queues = []

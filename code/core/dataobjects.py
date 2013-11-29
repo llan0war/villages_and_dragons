@@ -1,3 +1,5 @@
+import logging
+
 __author__ = 'a.libkind'
 import json
 import os
@@ -35,7 +37,7 @@ def load_all():
     for name in os.listdir('buildings'):
         if len(name.split('.')) > 1:
             if name.split('.')[1] == 'structure' and not name.split('.')[0] == 'template':
-                print 'loading ', name
+                logging.info('loading ', name)
                 raw_data = json.loads(open('buildings\\' + name, 'r').read())
                 data[raw_data['name']] = parse_data(raw_data)
     return data

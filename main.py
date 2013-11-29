@@ -1,14 +1,15 @@
 import pickle
 import random
-import time
 import datetime
+from villages_and_dragons.code.core import village2
+import logging
+import threading
 
 __author__ = 'a.libkind'
 
-import dragon2
-import world
-import village2
-import threading
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+logging.info('Log started')
+
 
 _VILLAGES = []
 _LAIRS = []
@@ -29,7 +30,7 @@ class Runner(threading.Thread):
 
     def run(self):
         while not self.stopped.wait(1):
-            print self.turn_id, ' turn for %s villages and %s settlers' % (len(self.data), self.get_settlers_num(self.data))
+            logging.info(self.turn_id, ' turn for %s villages and %s settlers' % (len(self.data), self.get_settlers_num(self.data)))
             settle_check = random.randint(1, 10)
             self.turn_id += 1
             for obj in self.data:
@@ -70,7 +71,7 @@ def sellte(village):
 
 
 def get_name(pref=''):
-    from dataobjects import vill_name_dict
+    from villages_and_dragons.code.core.dataobjects import vill_name_dict
 
     def all_names():
         return [vill.name for vill in _VILLAGES]
@@ -94,19 +95,28 @@ def get_name(pref=''):
         else:
             found = True
         if tries > 10:
-            res = 'temp'
+            res = 'temp' + str(random.randint(100000, 999999))
             found = True
     return res
 
 
-def add_vilage(gold=25, ppl=3, name=''):
+def add_vilage(gold=25000, ppl=130, name=''):
     _VILLAGES.append(village2.Village(get_name(name), gold, ppl))
+
+
+def start_log():
+    name = str(STARTTIME).replace(':', '')
+    print name
+    logging.basicConfig(filename='myapp.log', level=logging.DEBUG)
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    logger.info('Log started')
 
 
 def init():
     if init_villages:
-        _VILLAGES.append(village2.Village(get_name()))
-        _VILLAGES.append(village2.Village(get_name()))
+        add_vilage()
+        add_vilage()
         _THREADS.append(Runner(_VILLAGES, stopped))
         _THREADS[-1].start()
     if init_lairs:
@@ -115,5 +125,9 @@ def init():
 
 
 if __name__ == '__main__':
+    start_log()
     print 'yay'
+    logging.info('Starting')
     init()
+    logging.info('Init complete')
+    print'yay'
