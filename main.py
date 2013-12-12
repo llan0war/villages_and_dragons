@@ -1,9 +1,12 @@
 import pickle
 import random
 import datetime
-from villages_and_dragons.code.core import village2
+from code.core import village2
+from code.network import connector
+from multiprocessing import Process
 import logging
 import threading
+import time
 
 __author__ = 'a.libkind'
 
@@ -31,31 +34,35 @@ class Runner(threading.Thread):
 
     def run(self):
         while not self.stopped.wait(1):
-            logger.info(' %s turn for %s villages and %s settlers',self.turn_id, len(self.data), self.get_settlers_num(self.data))
-            settle_check = random.randint(1, 10)
-            self.turn_id += 1
-            for obj in self.data:
-                obj.turn()
-                if settle_check == 1:
-                    if obj.settler['ready']:
-                        sellte(obj)
+            self.make_turn()
+
+    def make_turn(self):
+        logger.info(' %s turn for %s villages and %s settlers', self.turn_id, len(self.data), self.get_settlers_num(self.data))
+        settle_check = random.randint(1, 10)
+        self.turn_id += 1
+        for obj in self.data:
+            obj.turn()
+            if settle_check == 1:
+                if obj.settler['ready']:
+                    sellte(obj)
             if self.turn_id == 42:
-                name = 'db\\' + str(random.randint(10000, 99999)) + '.' + self.data[-1].name + '.dump'
-                with open(name, 'w+') as f:
-                    pickle.dump(self.data[-1], f)
-                vill_backup = name
-                print '--> backuped', self.data[-1].name
+                self.save_and_load(obj)
+
+    def save_and_load(self, obj):
+        name = 'db\\' + str(random.randint(10000, 99999)) + '.' + obj.name + '.dump'
+        with open(name, 'w+') as f:
+            pickle.dump(obj, f)
+            #vill_backup = name
+            print '--> backuped', obj.name
             '''if self.turn_id == 84:
                 print '--> restoring ', vill_backup, ' to ', self.data[0].name
                 with open(vill_backup, 'r') as f:
                     self.data[0] = pickle.load(f)'''
 
-
     def checktime(self, prev, per):
         if (datetime.datetime.now() - prev) > datetime.timedelta(seconds=per):
             return True
         return False
-
 
     def get_settlers_num(self, obj):
         res = 0
@@ -72,7 +79,7 @@ def sellte(village):
 
 
 def get_name(pref=''):
-    from villages_and_dragons.code.core.dataobjects import vill_name_dict
+    from code.core.dataobjects import vill_name_dict
 
     def all_names():
         return [vill.name for vill in _VILLAGES]
@@ -124,7 +131,14 @@ def init():
 if __name__ == '__main__':
     start_log()
     print 'yay'
+    print connector.config
+    server = Process(target=connector.serverInit, args=(connector.config,))
+    server.start()
+    print server.is_alive()
+    time.sleep(5)
+    print 'Looks like a server started'
+    tasklist = connector.clientInit(connector.config)
     logging.info('Starting')
     init()
     logging.info('Init complete')
-    print'yay'
+    print 'Pony rules'

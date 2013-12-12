@@ -5,7 +5,7 @@ __author__ = 'a.libkind'
 
 
 class Village(object):
-    from villages_and_dragons.code.core.dataobjects import load_all
+    from code.core.dataobjects import load_all
     buildings = load_all()
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)

@@ -5,52 +5,32 @@ import time
 
 __author__ = 'a.libkind'
 
-import socket
-
-requestlib = {'info': 'got info', 'data': 'got data', 'command': 'got command', 'village': 0}
-config = {"server": "localhost", "port": 6543}
+config = {'port': 5000, 'authkey': 'dragonone', 'server': 'localhost'}
 
 
-def handleme(req):
-    if req in requestlib.keys():
-        if req == 'village':
-            with open('../db/10565.Warren.dump', 'r') as f:
-                data = f.read()
-            return data
-        else:
-            return requestlib[req]
+def serverInit(config):
+    from multiprocessing import managers
+    class taskList(managers.BaseManager):
+        pass
+
+    lst = []
+    taskList.register('tasks', callable=lambda: lst, proxytype=managers.ListProxy)
+
+    m = taskList(address=('', config['port']), authkey=config['authkey'])
+    s = m.get_server()
+    s.serve_forever()
 
 
-def server(cfg):
-    s = socket.socket()
-    s.bind((cfg['server'], cfg['port']))
-    s.listen(1)
-    while True:
-        c, addr = s.accept()
-        data = c.recv(1024)
-        if data:
-            print 'Got connection from', addr, ' with request', data
-            c.send(handleme(data))
-            c.close()
+def clientInit(config):
+    from multiprocessing import managers
+    class taskList(managers.BaseManager):
+        pass
 
-
-def client(cfg):
-    while True:
-        s = socket.socket()
-        s.connect((cfg['server'], cfg['port']))
-        req = random.choice(requestlib.keys())
-        s.send(req)
-        data = s.recv(1024)
-        print data
-        s.close
-        time.sleep(1)
-
-
+    taskList.register('tasks')
+    m = taskList(address=(config['server'], config['port']), authkey=config['authkey'])
+    m.connect()
+    tasklst = m.tasks()
+    return tasklst
 
 if __name__ == '__main__':
-    print 'yay'
-
-    #print os.listdir('..\\db')
-
-    #server(config)
-    client(config)
+    serverInit(config)
