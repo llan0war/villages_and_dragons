@@ -1,7 +1,7 @@
 import pickle
 import random
 import datetime
-from code.core import village2
+from code.core import village
 from code.network import connector
 from multiprocessing import Process
 import logging
@@ -109,7 +109,7 @@ def get_name(pref=''):
 
 
 def add_vilage(gold=25000, ppl=130, name=''):
-    _VILLAGES.append(village2.Village(get_name(name), gold, ppl))
+    _VILLAGES.append(village.Village(get_name(name), gold, ppl))
 
 
 def start_log():
