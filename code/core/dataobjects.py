@@ -1,8 +1,9 @@
 import logging
-
-__author__ = 'a.libkind'
+import random
 import json
 import os
+
+__author__ = 'a.libkind'
 
 # [cost, ppl gain, ppl need, income gold, max ppl, max warriors]
 #buildings = {'house': [5, 0, 0, 0.5, 8, 0],
@@ -51,6 +52,17 @@ def parse_data(raw_data):
     res.append(raw_data['income gold'])
     res.append(raw_data['max ppl'])
     res.append(raw_data['max warriors'])
+    return res
+
+
+def get_name(pref=''):
+    def check_history(name):
+        if name.split(' - ') > 2:
+            return name.split(' - ')[-1]
+        else:
+            return name
+
+    res = check_history(pref + random.choice(vill_name_dict['part1']) + random.choice(vill_name_dict['part2']))
     return res
 
 
