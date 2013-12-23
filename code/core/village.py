@@ -1,20 +1,20 @@
 import random
 import logging
+from code.core import CoreData
 
 __author__ = 'a.libkind'
 
 
 class Village(object):
-    from code.core.dataobjects import load_all
-    buildings = load_all()
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
 
-    def __init__(self, name, wealth=125, settlers=5, coords=[0, 0], id=0):
+    def __init__(self, name, wealth=125, settlers=5, coords=[0, 0], id=0, buildings=CoreData.load_all()):
         self.name = name
         self.gold = wealth
         self.peoples = settlers
         self.coords = coords
+        self.buildings = buildings
         self.id = self.get_id(id)
         self.data_init()
         self.create()

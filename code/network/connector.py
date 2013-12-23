@@ -2,22 +2,23 @@ from Queue import Queue
 
 __author__ = 'a.libkind'
 
-config = {'port': 5000, 'authkey': 'dragonone', 'server': 'localhost'}
+config = {'port': 5005, 'authkey': 'dragonone', 'server': 'localhost'}
 modules = ['comm', 'villages', 'lairs', 'taskproc', 'world']
 
 
-def serverInit(config):
+def serverInit(config, module):
     from multiprocessing import managers
 
     class comm_channel(managers.BaseManager):
         pass
 
-    lst = dict()
-    for module in modules:
-        lst[module] = Queue()
-        comm_channel.register(module, callable=lambda: lst[module])
+    port = config['port'] + modules.index(module)
 
-    m = comm_channel(address=('', config['port']), authkey=config['authkey'])
+    loc_lst = Queue()
+    comm_channel.register(module, callable=lambda: loc_lst)
+
+    m = comm_channel(address=('', port), authkey=config['authkey'])
+    print 'Starting %s channel at %s port' % (module, port)
     s = m.get_server()
     s.serve_forever()
 
@@ -29,9 +30,9 @@ def clientInit(config, module):
         class comm_channel(managers.BaseManager):
             pass
 
-        print 'Initiqalizing channel ', module
+        print 'Initializing channel %s at port %s' % (module, config['port'] + modules.index(module))
         comm_channel.register(module)
-        m = comm_channel(address=(config['server'], config['port']), authkey=config['authkey'])
+        m = comm_channel(address=(config['server'], config['port'] + modules.index(module)), authkey=config['authkey'])
         m.connect()
         #TODO change that crap
         if module == 'comm':

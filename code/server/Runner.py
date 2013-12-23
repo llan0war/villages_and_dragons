@@ -3,10 +3,11 @@ import random
 import threading
 import datetime
 import logging
-from villages_and_dragons.code.network import connector
+from code.network import connector
 
 
 __author__ = 'a.libkind'
+
 
 class Runner(threading.Thread):
     logger = logging.getLogger(__name__)

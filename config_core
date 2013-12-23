@@ -1,0 +1,5 @@
+{"init_villages" : "False",
+"init_lairs": "False",
+"init_core": "True",
+"init_taskprocessor": "False",
+"init_world": "False"}
