@@ -17,6 +17,11 @@ vill_name_dict = {'part1': ['Ae', 'Di', 'Mo', 'Fam', 'Hok', 'War', 'Fag', 'Kro',
                   'part2': ['dar', 'kil', 'glar', 'tres', 'isk', 'trin', 'ren', 'rtol', 'tan', 'jas', 'lis', 'gitr',
                             'dasg', 'okis', 'tepr', '-Ponyville']}
 
+dragon_colors = ['Ghost', 'Red', 'White', 'Yellow', 'Black', 'Green', 'Blue', 'Copper', 'Silver', 'Gold', 'Bronze', 'Iron', 'Mercury']
+
+dragon_name_dict = open('texts\\draconic.txt', 'r').read().splitlines()
+
+dragon_sex = ['male', 'female']
 
 def dump_all(data):
     for key in data:
@@ -55,7 +60,7 @@ def parse_data(raw_data):
     return res
 
 
-def get_name(pref=''):
+def get_village_name(pref=''):
     def check_history(name):
         if name.split(' - ') > 2:
             return name.split(' - ')[-1]
@@ -65,12 +70,18 @@ def get_name(pref=''):
     res = check_history(pref + random.choice(vill_name_dict['part1']) + random.choice(vill_name_dict['part2']))
     return res
 
+def get_dragon_name():
+    random.seed()
+    name = random.choice(dragon_name_dict)
+    if len(name) < 5:
+        name = name + random.choice(dragon_name_dict)
+    return name.title()
 
 if __name__ == '__main__':
 
     #dump_all(buildings)
-    buildings2 = load_all()
+    #buildings2 = load_all()
     #print buildings
-    print buildings2
-
-
+    #print buildings2
+    #print dragon_name_dict
+    pass

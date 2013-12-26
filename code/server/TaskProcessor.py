@@ -17,8 +17,7 @@ class TaskProcessor(threading.Thread):
 
     def run(self):
         while not self.stopped.wait(1):
-            self.villages.put('Turn', False)
-            print '--> i\'m taskprocessor and i\'m added one turn', self.villages.qsize()
+            self.make_turn()
             if not self.comm.empty():
                 self.check_inc()
             time.sleep(5)
@@ -27,6 +26,12 @@ class TaskProcessor(threading.Thread):
         while not self.comm.empty():
             task = self.comm.get(False)
             self.proceed(task)
+
+    def make_turn(self):
+        self.villages.put('Turn', False)
+        self.lairs.put('Turn', False)
+        self.world.put('Turn', False)
+        print '--> i\'m taskprocessor and i\'m added one turn'
 
     def proceed(self, task):
         print task

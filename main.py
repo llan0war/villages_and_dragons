@@ -4,7 +4,7 @@ import datetime
 import threading
 import time
 import sys
-from code.core import CoreData, village, CoreModule
+from code.core import CoreData, Village, CoreModule, Dragon
 from code.network import connector
 from code.server import TaskProcessor, Runner
 
@@ -36,8 +36,11 @@ def sellte(village):
 
 
 def add_vilage(gold=25000, ppl=130, name=''):
-    _VILLAGES.append(village.Village(name=CoreData.get_name(name), wealth=gold, settlers=ppl, buildings=buildings))
+    _VILLAGES.append(Village.Village(name=CoreData.get_village_name(name), wealth=gold, settlers=ppl, buildings=buildings))
 
+
+def add_lairs():
+    _LAIRS.append(Dragon.Lair())
 
 def start_log():
     name = str(STARTTIME).replace(':', '')
