@@ -151,7 +151,6 @@ class Lair(object):
     def stat(self, dragonne):
         return '%s (%s %s) (int:%s str:%s)' % (dragonne.name, dragonne.sex, CoreData.dragon_colors[dragonne.get_gene(4)], dragonne.smart(), dragonne.power())
 
-
     def check_compatibility(self, d1_stats, d2_stats):
         diff = 0
         if d1_stats['sex'] == d2_stats['sex']: diff += 25 #sex
