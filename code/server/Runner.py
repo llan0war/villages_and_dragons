@@ -30,15 +30,9 @@ class Runner(threading.Thread):
 
     def make_turn(self):
         self.logger.info(' %s turn for %s villages and %s settlers', self.turn_id, len(self.data), self.get_settlers_num(self.data))
-        #settle_check = random.randint(1, 10)
         self.turn_id += 1
         for obj in self.data:
             obj.turn()
-            #if settle_check == 1:
-            #    if obj.settler['ready']:
-            #        sellte(obj)
-            #if self.turn_id == 42:
-            #    self.save_and_load(obj)
 
     def save_and_load(self, obj):
         name = 'db\\' + str(random.randint(10000, 99999)) + '.' + obj.name + '.dump'
