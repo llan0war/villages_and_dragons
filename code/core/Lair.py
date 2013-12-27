@@ -17,9 +17,9 @@ class Lair(object):
         self._eggs = dict()
         self._curr_dragon_id = 1
         self._curr_egg_id = 1
-        self._pair_list = []
+        self._pair_list = set()
         self._active_hunts = dict()
-        self._dead_list = []
+        self._dead_list = set()
 
     def check_egg_hatch(self):
         total_hatches = 0
@@ -38,17 +38,27 @@ class Lair(object):
         total_pairings = 0
         total_fail_pairings = 0
         total_pair_checks = 0
-        for dragonne_id in self._pair_list:
-            if dragonne_id not in self._dead_list:
+        #self._pair_list = list(set(self._pair_list))
+        tmplst = list(self._pair_list)
+        pair_one = iter(tmplst)
+        try:
+            while True:
+                dragonne_id = pair_one.next()
                 if self._dragons[str(dragonne_id)].pairing:
-                    pair_id = self.find_pair(dragonne_id)
+                    pair_id = self.find_pair(dragonne_id, tmplst)
                     total_pair_checks += 1
                     if pair_id:
                         total_pairings += 1
                         self.add_egg(parent_genes=[self._dragons[str(dragonne_id)].pair(), self._dragons[str(pair_id)].pair()])
+                        tmplst.remove(dragonne_id)
+                        tmplst.remove(pair_id)
                     else:
                         total_fail_pairings += 1
+        except StopIteration:
+            pass
+        self._pair_list = set(tmplst)
         return total_pair_checks, total_pairings, total_fail_pairings
+
 
     def create(self):
         coords = [0, 0]
@@ -61,12 +71,21 @@ class Lair(object):
                 if self.check_one_dragon_dead(task[0]):
                     total_deaths += 1
             elif task[1] == 'pair':
-                if task[0] not in self._dead_list:
-                    self._pair_list.append(task[0])
+                self._pair_list.add(task[0])
             elif task[1] == 'hunt':
-                if task[0] not in self._dead_list:
-                    self._active_hunts[task[0]] = task[2]
+                self._active_hunts[task[0]] = task[2]
+        self.process_lists()
         return total_deaths
+
+    def process_lists(self):
+        killlist = []
+        #find
+        for id in self._active_hunts.keys():
+            if self.already_dead(int(id)):
+                killlist.append(int(id))
+        for id in killlist:
+            del self._active_hunts[id]
+        self._pair_list.difference_update(self._dead_list)
 
     def make_hunt(self, id):
         target_hp = max(self._dragons[str(id)].age_cat() + random.randint(-1, 3), 1)
@@ -94,6 +113,7 @@ class Lair(object):
 
         if random.randint(1, 42) == 42:
             self.print_all_stats(deaths, pairing_stat, total_hatches, hunts, succ_hunt, fail_hunt)
+            print self.color_stat()
 
         for egg in self._eggs.values():
             egg.turn()
@@ -111,11 +131,12 @@ class Lair(object):
         pass
 
     def check_one_dragon_dead(self, id):
-        if id not in self._dead_list:
+        #if id not in self._dead_list:
+        if not self.already_dead(id):
             if self._dragons[str(id)].dead:
                 dragonne = self._dragons[str(id)]
                 del self._dragons[str(id)]
-                self._dead_list.append(id)
+                self._dead_list.add(id)
                 del dragonne
                 return 1
         return 0
@@ -134,26 +155,34 @@ class Lair(object):
     def check_compatibility(self, d1_stats, d2_stats):
         diff = 0
         if d1_stats['sex'] == d2_stats['sex']: diff += 25 #sex
-        diff += abs(d1_stats['color'] - d2_stats['color']) * 5 #color
+        diff += abs(d1_stats['color'] - d2_stats['color']) * 2 #color
         diff += abs(d1_stats['smart'] - d2_stats['smart']) #smart
         #diff -= abs(dragon1.smart() - dragon2.smart()) #strength
-
         if diff < 5 + d1_stats['smart'] + d2_stats['smart']:
-            #if dragon1.sex == dragon2.sex: print '--> TWO MALES YIFFED %s try to yiff %s ' % (self.stat(dragon1), self.stat(dragon2))
+            if d1_stats['sex'] == d2_stats['sex']: print '--> TWO MALES YIFFED %s try to yiff %s ' % (d1_stats, d2_stats)
             #if abs(dragon1.get_gene(4) - dragon2.get_gene(4)) > 0 : print '--> DIFFERENT COLORS YIFFED %s try to yiff %s ' % (self.stat(dragon1), self.stat(dragon2))
             #print ' %s try to yiff %s success with diff %s' % (stat(dragon1), stat(dragon2), diff)
             return True
         else:
-            #print ' %s try to yiff %s but fail with diff %s' % (stat(dragon1), stat(dragon2), diff)
+            #print ' %s try to yiff %s but fail with diff %s' % (d1_stats, d2_stats, diff)
             return False
 
-    def find_pair(self, id):
-        if len(self._dragons) < 2:
+    def find_pair(self, id, pair_list):
+        if len(pair_list) < 2:
             return None
-        target_id = random.choice(self._dragons.keys())
+        target_id = id
+        tries = 0
+        while target_id == id:
+            target_id = random.choice(pair_list)
+            tries += 1
+            if tries > 3:
+                return None
         if self.check_compatibility(self._dragons[str(id)].pair_stat(), self._dragons[str(target_id)].pair_stat()):
             return target_id
         return None
+
+    def already_dead(self, id):
+        return id in self._dead_list
 
     def count_pairs(self):
         res = 0
@@ -172,12 +201,10 @@ class Lair(object):
         return males, females
 
     def color_stat(self):
-        color_assembly = {str(color): 0 for color in range(0, 20)}
+        color_assembly = {}
+        get = color_assembly.get
         for dragonne in self._dragons.values():
-            color_assembly[str(dragonne.get_gene(4))] += 1
-        for key in color_assembly.keys():
-            if color_assembly[key] == 0:
-                color_assembly.pop(key, None)
+            color_assembly[str(dragonne.get_gene(4))] = get(str(dragonne.get_gene(4)), 0) + 1
         for key in color_assembly.keys():
             color_assembly[CoreData.dragon_colors[int(key)]] = color_assembly[key]
             color_assembly.pop(key, None)
@@ -191,7 +218,7 @@ class Lair(object):
             return res
 
         res_genes = {str(color): 0 for color in range(0, 5)}
-        for one_gene in range(0, 5):
+        for one_gene in range(0, 6):
             res_genes[str(one_gene)] = count_in(self._dragons.values(), one_gene)
         return res_genes
 
@@ -225,15 +252,14 @@ class Lair(object):
             try:
                 while resource > 0:
                     id = hunt_order.next()
-                    if id not in self._dead_list:
-                        spoil = self.make_hunt(id)
-                        total_hunts += 1
-                        if spoil:
-                            resource -= spoil
-                            self._dragons[str(id)].hunt_complete(spoil)
-                            succ_hunts += 1
-                        else:
-                            fail_hunts += 1
+                    spoil = self.make_hunt(id)
+                    total_hunts += 1
+                    if spoil:
+                        resource -= spoil
+                        self._dragons[str(id)].hunt_complete(spoil)
+                        succ_hunts += 1
+                    else:
+                        fail_hunts += 1
             except StopIteration:
                 pass
             self._active_hunts = dict()

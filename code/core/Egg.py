@@ -10,9 +10,9 @@ class Egg(object):
         self._parent_genes = []
         self._parent_genes = parent_genes
         self._genes = [0,0,0,0,0,0]
-        self._hatch_time = int(self._genes[5])*2
         self.hatcheble = False
         self.new_one()
+        self._hatch_time = int(self._genes[5])*2
 
     def age(self):
         return int(self._age)
@@ -31,17 +31,12 @@ class Egg(object):
             self.mutate(gene_num)
 
     def mutate(self, gen_num):
-        if random.randint(1, 100) == 100:
-            if gen_num == 4:
-                #modify color
+        if gen_num == 4: #for color
+            if random.randint(1, 20) > 18:
                 self._genes[gen_num] = random.randint(1, 10)
-                #print "--> color changed", self._genes
+        elif random.randint(1, 20) > 10 + self._genes[gen_num]:
+                self._genes[gen_num] += 1
 
-            else:
-                if self._genes[gen_num] < 5:
-                    self._genes[gen_num] += 1
-                elif random.randint(1, 100) == 50:
-                    self._genes[gen_num] += 1
 
     def turn(self):
         self._age += 1

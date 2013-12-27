@@ -17,7 +17,7 @@ class Dragon(object):
         self.color = CoreData.dragon_colors[self.get_gene(4)]
         self.age = 0
         self.age = age
-        self.max_age = 200 + int(self.get_gene(5))*50
+        self.max_age = 300 + int(self.get_gene(5))*50
         self.dead = False
         self.pairing = False
 
@@ -58,7 +58,6 @@ class Dragon(object):
         return (1 + float(1 + self.age_cat())/float(3*self.get_gene(3)))/5
 
     def reduce_energy(self, count):
-        #print '%s energy reduced to %s by %s' % (self.id, self._energy - count, count)
         self._energy -= count
 
     def inc_energy(self, count):
@@ -66,10 +65,10 @@ class Dragon(object):
 
     def pair(self):
         self.disable_pairing()
-        if self._energy > 20:
+        if self._energy > 21:
             self.reduce_energy(20)
         else:
-            self.reduce_energy(self._energy - 1)
+            self.reduce_energy(self._energy - 2)
         return self._gene
 
     def enable_pairing(self):
@@ -81,7 +80,7 @@ class Dragon(object):
         self.set_pair_cooldown()
 
     def set_pair_cooldown(self, cooldown=None):
-        self._pair_cooldown = cooldown or int(100 - self.get_gene(5)*5)
+        self._pair_cooldown = cooldown or max(int(100 - self.get_gene(5)*5), 15)
 
     def get_gene(self, num):
         return int(self._gene[num])

@@ -11,6 +11,7 @@ __author__ = 'a.libkind'
 #             'smith': [25, 0, 2, 10, 0, 0],
 #            'barracks': [50, 0, 2, -5, 0, 20]}
 
+#genes order [0:smart 1:power 2:speed 3:energy 4:color 5:life]
 dic = {'name': '', 'cost': 0, 'ppl gain': 0, 'ppl need': 0, 'income gold': 0, 'max ppl': 0, 'max warriors': 0}
 
 vill_name_dict = {'part1': ['Ae', 'Di', 'Mo', 'Fam', 'Hok', 'War', 'Fag', 'Kro', 'Li', 'Mef', 'Ilym', 'As', 'Uet'],
