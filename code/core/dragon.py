@@ -5,9 +5,9 @@ __author__ = 'a.libkind'
 
 
 class Dragon(object):
-    def __init__(self, orders, id=None, name=None, gene=None, age=0, sex=None):
+    def __init__(self, orders, id_pref=None, id=None, name=None, gene=None, age=0, sex=None):
         self.name = name or CoreData.get_dragon_name()
-        self.id = id or random.randint(1000000, 10000000-1)
+        self.id = id or self.get_id(id_pref or random.randint(10000, 99999))
         self._pair_cooldown = 0
         self._energy = 10
         self._orders = orders
@@ -20,12 +20,19 @@ class Dragon(object):
         self.max_age = 300 + int(self.get_gene(5))*50
         self.dead = False
         self.pairing = False
+        self._age_cat = 0
+
+    def get_id(self, pref):
+        return str(pref) + '#' + self.name
 
     def smart(self):
         return int(1 + self.get_gene(0)*self.age_cat())
 
     def age_cat(self):
-        return int(self.age/100)
+        return self._age_cat
+
+    def calc_age_cat(self):
+        self._age_cat = int(self.age/100)
 
     def power(self):
         return int(1 + self.get_gene(1)*self.age_cat())
@@ -37,6 +44,8 @@ class Dragon(object):
             self._pair_cooldown -= 1
         if not self.check_death():
             self.logic()
+        if random.randint(1, 10) == 10:
+            self.calc_age_cat()
 
     def check_death(self):
         if self.age > self.max_age:

@@ -15,8 +15,8 @@ class Lair(object):
         self.coords = []
         self.coords = coords
         self._eggs = dict()
-        self._curr_dragon_id = 1
-        self._curr_egg_id = 1
+        self._curr_dragon_id = 10000
+        self._curr_egg_id = 10000
         self._pair_list = set()
         self._active_hunts = dict()
         self._dead_list = set()
@@ -81,8 +81,8 @@ class Lair(object):
         killlist = []
         #find
         for id in self._active_hunts.keys():
-            if self.already_dead(int(id)):
-                killlist.append(int(id))
+            if self.already_dead(id):
+                killlist.append(id)
         for id in killlist:
             del self._active_hunts[id]
         self._pair_list.difference_update(self._dead_list)
@@ -158,7 +158,7 @@ class Lair(object):
         diff += abs(d1_stats['smart'] - d2_stats['smart']) #smart
         #diff -= abs(dragon1.smart() - dragon2.smart()) #strength
         if diff < 5 + d1_stats['smart'] + d2_stats['smart']:
-            if d1_stats['sex'] == d2_stats['sex']: print '--> TWO MALES YIFFED %s try to yiff %s ' % (d1_stats, d2_stats)
+            if d1_stats['sex'] == d2_stats['sex']: print '--> TWO MALES YIFFED %s yiff with %s ' % (d1_stats, d2_stats)
             #if abs(dragon1.get_gene(4) - dragon2.get_gene(4)) > 0 : print '--> DIFFERENT COLORS YIFFED %s try to yiff %s ' % (self.stat(dragon1), self.stat(dragon2))
             #print ' %s try to yiff %s success with diff %s' % (stat(dragon1), stat(dragon2), diff)
             return True
@@ -227,7 +227,8 @@ class Lair(object):
             dragonne._orders = self._dragons_orders
             self._dragons[str(dragonne.id)] = dragonne
         else:
-            self._dragons[str(self._curr_dragon_id)] = Dragon.Dragon(orders=self._dragons_orders, id=self._curr_dragon_id, gene=genes)
+            new_dragon = Dragon.Dragon(orders=self._dragons_orders, id_pref=self._curr_dragon_id, gene=genes)
+            self._dragons[new_dragon.id] = new_dragon
             self._curr_dragon_id += 1
 
     def add_egg(self, egg=None, parent_genes=None):
