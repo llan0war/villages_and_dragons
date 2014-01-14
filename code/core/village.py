@@ -1,14 +1,11 @@
 import random
-import logging
 from code.core import CoreData
+from code.server import Logger
 
 __author__ = 'a.libkind'
 
 
-class Village(object):
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-
+class Village(Logger.LogMe):
     def __init__(self, orders, localmap=None, id_pref=None, name=None, gold=None, peoples=None, coords=[0, 0], id=None, buildings=None):
         self.name = name or CoreData.get_village_name()
         self.gold = gold or 125
@@ -19,7 +16,9 @@ class Village(object):
         self.buildings = buildings or CoreData.load_all()
         self.id = id or self.get_id(id_pref or random.randint(10000, 99999))
         self.data_init()
+        self.logger = self.getlog(self.id)
         self.create()
+
 
     def get_id(self, pref):
         return str(pref) + '#' + self.name
@@ -57,7 +56,7 @@ class Village(object):
         for i, j in self.structures.iteritems():
             if j['count'] > 0:
                 prog = prog + ' ' + i + ':' + str(j['enabled']) + '/' + str(j['count'])
-        prog = prog + ' with total EV ' + str(self.EV)
+        prog = prog + ' with total EV ' + str(int(self.EV))
         prog = prog + ' and sended settlers ' + str(self.settl_num)
         return prog
 
