@@ -1,5 +1,6 @@
 import random
 import itertools
+from code.core import WorldTile
 
 __author__ = 'a.libkind'
 
@@ -20,14 +21,14 @@ class WorldGenerator(object):
         self.print_world()
 
     def make_empty_world(self):
-        self.world = [[0 for x in xrange(self.size)] for x in xrange(self.size)]
+        self.world = [[WorldTile.WorldTile() for _ in xrange(self.size)] for _ in xrange(self.size)]
 
     def rand_coord(self):
         return random.randint(0, self.size-1)
 
     def make_points(self):
         for _ in itertools.repeat(None, random.randint(int(self.size / 20), int(self.size / 5))):
-            self.world[self.rand_coord()][self.rand_coord()] = 0
+            self.world[self.rand_coord()][self.rand_coord()].resource = 0
 
     def normalize(self):
         for _ in itertools.repeat(None, 1000):
@@ -47,7 +48,7 @@ class WorldGenerator(object):
 
     def randomize_all(self):
         for _ in itertools.repeat(None, 10000):
-            self.world[self.rand_coord()][self.rand_coord()] = random.randint(1, 9)
+            self.world[self.rand_coord()][self.rand_coord()].resource = random.randint(1, 9)
 
     def print_world(self):
         for line in self.world:
@@ -57,7 +58,7 @@ class WorldGenerator(object):
             print res
 
     def clasterize(self):
-        for _ in itertools.repeat(None, 1000):
+        for _ in itertools.repeat(None, 100):
             if random.randint(1, 10) == 9:
                 self.make_points()
             for xcor in range(self.size-1):
@@ -67,7 +68,12 @@ class WorldGenerator(object):
                         for k in range(-1, 2):
                             for l in range(-1, 2):
                                 if self.world[xcor][ycor] > self.world[xcor + k][ycor + l] + 1:
-                                    self.world[xcor + k][ycor + l] +=  1
+                                    self.world[xcor + k][ycor + l] += 1
                                     maked = True
                         if maked:
                             self.world[xcor][ycor] -= 1
+
+if __name__ == '__main__':
+    wrld = WorldGenerator()
+    wrld.generate_world()
+    print type(wrld.world[1][1])
