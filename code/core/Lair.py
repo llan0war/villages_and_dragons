@@ -2,10 +2,11 @@ import Queue
 import random
 import operator
 from code.core import Dragon, Egg, CoreData
+from code.server import Logger
 
 __author__ = 'Llanowar'
 
-class Lair(object):
+class Lair(Logger.LogMe):
     def __init__(self, coords=[0,0], gold=0):
         self._dragons = dict()
         self._dragons_orders = Queue.Queue()
@@ -20,6 +21,7 @@ class Lair(object):
         self._pair_list = set()
         self._active_hunts = dict()
         self._dead_list = set()
+        self.logger = self.getlog(self.__name__)
 
     def check_egg_hatch(self):
         total_hatches = 0
@@ -100,9 +102,10 @@ class Lair(object):
         total_pair_checks, total_pairings, total_fail_pairings = pair_stat
         stat = self.sex_stat()
         pairs_counted = self.count_pairs()
-        print 'Population %s eggs and %s dragons. %s dragons want to pair. %s males %s females. %s deaded %s hatched %s/%s of %s paired, %s/%s of %s hunts ' % \
-              (len(self._eggs), len(self._dragons), pairs_counted, stat[0], stat[1], deaths, total_hatches,
-               total_pairings, total_fail_pairings, total_pair_checks, succ_hunts, fail_hunts, hunts)
+        self.logger('Population %s eggs and %s dragons. %s dragons want to pair. %s males %s females. %s deaded %s '
+                    'hatched %s/%s of %s paired, %s/%s of %s hunts ', len(self._eggs), len(self._dragons),
+                    pairs_counted, stat[0], stat[1], deaths, total_hatches, total_pairings, total_fail_pairings,
+                    total_pair_checks, succ_hunts, fail_hunts, hunts)
 
     def turn(self, resources_gain):
         deaths = self.process_tasks()
@@ -111,9 +114,8 @@ class Lair(object):
         remain_resource, hunts, succ_hunt, fail_hunt = self.check_hunts(resources_gain)
         #stat = self.check_lair()
 
-        if random.randint(1, 42) == 42:
-            self.print_all_stats(deaths, pairing_stat, total_hatches, hunts, succ_hunt, fail_hunt)
-            print self.color_stat()
+        self.print_all_stats(deaths, pairing_stat, total_hatches, hunts, succ_hunt, fail_hunt)
+        #print self.color_stat()
 
         for egg in self._eggs.values():
             egg.turn()
@@ -158,9 +160,8 @@ class Lair(object):
         diff += abs(d1_stats['smart'] - d2_stats['smart']) #smart
         #diff -= abs(dragon1.smart() - dragon2.smart()) #strength
         if diff < 5 + d1_stats['smart'] + d2_stats['smart']:
-            if d1_stats['sex'] == d2_stats['sex']: print '--> TWO MALES YIFFED %s yiff with %s ' % (d1_stats, d2_stats)
-            #if abs(dragon1.get_gene(4) - dragon2.get_gene(4)) > 0 : print '--> DIFFERENT COLORS YIFFED %s try to yiff %s ' % (self.stat(dragon1), self.stat(dragon2))
-            #print ' %s try to yiff %s success with diff %s' % (stat(dragon1), stat(dragon2), diff)
+            if d1_stats['sex'] == d2_stats['sex']:
+                self.logger.debug('TWO MALES YIFFED %s yiff with %s ', d1_stats, d2_stats)
             return True
         else:
             #print ' %s try to yiff %s but fail with diff %s' % (d1_stats, d2_stats, diff)
