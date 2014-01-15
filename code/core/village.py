@@ -19,7 +19,6 @@ class Village(Logger.LogMe):
         self.logger = self.getlog(self.id)
         self.create()
 
-
     def get_id(self, pref):
         return str(pref) + '#' + self.name
 
@@ -167,7 +166,7 @@ class Village(Logger.LogMe):
             ppl_loss = random.randint(0, int(self.peoples / 2 - 1))
         else:
             ppl_loss = 0
-        self.logger.info('%s celebrating for %s gold with %s casualities', self.name, gold_loss, ppl_loss)
+        self.logger.debug('%s celebrating for %s gold with %s casualities', self.name, gold_loss, ppl_loss)
         self.gold -= gold_loss
         self.peoples -= ppl_loss
 
@@ -221,7 +220,7 @@ class Village(Logger.LogMe):
                     res = 'but no such peoples'
             else:
                 res = 'but cannot affroid'
-            self.logger.info('Village %s choose to build %s %s', self.name, type_build, res)
+            self.logger.debug('Village %s choose to build %s %s', self.name, type_build, res)
 
     def add_structure(self, templ, type_build, cost_g, cost_p):
         self.gold -= cost_g

@@ -10,7 +10,7 @@ class Lair(Logger.LogMe):
     def __init__(self, coords=[0,0], gold=0):
         self._dragons = dict()
         self._dragons_orders = Queue.Queue()
-        self.name = self.name()
+        self.name = self.get_name()
         self._gold = 0
         self._gold = gold
         self.coords = []
@@ -21,7 +21,7 @@ class Lair(Logger.LogMe):
         self._pair_list = set()
         self._active_hunts = dict()
         self._dead_list = set()
-        self.logger = self.getlog(self.__name__)
+        self.logger = self.getlog(self.get_name())
 
     def check_egg_hatch(self):
         total_hatches = 0
@@ -102,7 +102,7 @@ class Lair(Logger.LogMe):
         total_pair_checks, total_pairings, total_fail_pairings = pair_stat
         stat = self.sex_stat()
         pairs_counted = self.count_pairs()
-        self.logger('Population %s eggs and %s dragons. %s dragons want to pair. %s males %s females. %s deaded %s '
+        self.logger.info('Population %s eggs and %s dragons. %s dragons want to pair. %s males %s females. %s deaded %s '
                     'hatched %s/%s of %s paired, %s/%s of %s hunts ', len(self._eggs), len(self._dragons),
                     pairs_counted, stat[0], stat[1], deaths, total_hatches, total_pairings, total_fail_pairings,
                     total_pair_checks, succ_hunts, fail_hunts, hunts)
@@ -125,7 +125,7 @@ class Lair(Logger.LogMe):
 
         return remain_resource
 
-    def name(self):
+    def get_name(self):
         res = ' and '.join([dragon.name for dragon in self._dragons.values()]) + ' lair'
         return res
 
@@ -162,6 +162,7 @@ class Lair(Logger.LogMe):
         if diff < 5 + d1_stats['smart'] + d2_stats['smart']:
             if d1_stats['sex'] == d2_stats['sex']:
                 self.logger.debug('TWO MALES YIFFED %s yiff with %s ', d1_stats, d2_stats)
+            self.logger.debug('Pair found, %s paired with %s', d1_stats['name'], d2_stats['name'])
             return True
         else:
             #print ' %s try to yiff %s but fail with diff %s' % (d1_stats, d2_stats, diff)
@@ -228,9 +229,10 @@ class Lair(Logger.LogMe):
             dragonne._orders = self._dragons_orders
             self._dragons[str(dragonne.id)] = dragonne
         else:
-            new_dragon = Dragon.Dragon(orders=self._dragons_orders, id_pref=self._curr_dragon_id, gene=genes)
-            self._dragons[new_dragon.id] = new_dragon
+            dragonne = Dragon.Dragon(orders=self._dragons_orders, id_pref=self._curr_dragon_id, gene=genes)
+            self._dragons[dragonne.id] = dragonne
             self._curr_dragon_id += 1
+        self.logger.info('New dragon born, ID: %s Name: %s', dragonne.id, dragonne.name )
 
     def add_egg(self, egg=None, parent_genes=None):
         parent_genes = parent_genes or [self.gene_constructor(), self.gene_constructor()]
@@ -239,6 +241,7 @@ class Lair(Logger.LogMe):
         else:
             self._eggs[str(self._curr_egg_id)] = Egg.Egg(id=self._curr_egg_id, parent_genes=parent_genes)
             self._curr_egg_id += 1
+        self.logger.info('New egg added')
 
     def gene_constructor(self):
         return [1, 1, 1, 1, random.randint(1, 10), 1]
@@ -259,8 +262,10 @@ class Lair(Logger.LogMe):
                         resource -= spoil
                         self._dragons[str(id)].hunt_complete(spoil)
                         succ_hunts += 1
+                        self.logger.debug('%s hunted successfully with %s spoil', self._dragons[str(id)].name, str(spoil))
                     else:
                         fail_hunts += 1
+                        self.logger.debug('%s fail its hunt', self._dragons[str(id)].name)
             except StopIteration:
                 pass
             self._active_hunts = dict()

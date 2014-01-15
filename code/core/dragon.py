@@ -1,10 +1,11 @@
 import random
 from code.core import CoreData
+from code.server import Logger
 
 __author__ = 'a.libkind'
 
 
-class Dragon(object):
+class Dragon(Logger.LogMe):
     def __init__(self, orders, id_pref=None, id=None, name=None, gene=None, age=0, sex=None):
         self.name = name or CoreData.get_dragon_name()
         self.id = id or self.get_id(id_pref or random.randint(10000, 99999))
@@ -21,6 +22,7 @@ class Dragon(object):
         self.dead = False
         self.pairing = False
         self._age_cat = 0
+        self.logger = self.getlog(self.id)
 
     def get_id(self, pref):
         return str(pref) + '#' + self.name
@@ -48,20 +50,32 @@ class Dragon(object):
             self.calc_age_cat()
 
     def check_death(self):
+        reason = ''
         if self.age > self.max_age:
             if random.randint(1, 100) > self.smart():
                 self.dead = True
                 self._orders.put([self.id, 'dead'], False)
+                reason = 'age'
         if self._energy < 0:
             self.dead = True
             self._orders.put([self.id, 'dead'], False)
+            reason = 'energy'
+        if self.dead:
+            self.logger.info('%s dead via %s', self.name, reason)
         return self.dead
 
     def logic(self):
-        if self._energy < 25:
+        result = []
+        choise = random.randint(1, 10)
+        if self._energy < 25 or choise == 1:
             self._orders.put([self.id, 'hunt', self.smart()], False)
+            result.append('hunt')
         if not self.pairing and self._pair_cooldown == 0 and self.age_cat() > 0 and self._energy > 20:
             self.enable_pairing()
+            result.append('pair')
+        if len(result) > 0:
+            self.logger.debug(' %s think about next actions, and choose to %s', self.name,
+                              '%s' % ' and '.join(map(str, [res for res in result])))
 
     def fatigue(self):
         return (1 + float(1 + self.age_cat())/float(3*self.get_gene(3)))/5
@@ -95,7 +109,7 @@ class Dragon(object):
         return int(self._gene[num])
 
     def pair_stat(self):
-        return {'sex': self.sex, 'smart': self.smart(), 'strength': self.power(), 'color': self.get_gene(4)}
+        return {'sex': self.sex, 'smart': self.smart(), 'strength': self.power(), 'color': self.get_gene(4), 'name': self.name}
 
     def hunt_complete(self, spoil):
         self.inc_energy(spoil)
