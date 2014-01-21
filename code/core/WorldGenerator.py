@@ -1,5 +1,6 @@
 import random
 import itertools
+import math
 from code.core import WorldTile
 
 __author__ = 'a.libkind'
@@ -7,21 +8,33 @@ __author__ = 'a.libkind'
 
 class WorldGenerator(object):
     def __init__(self, size=None):
-        self.size = size or 100
+        self.size = size or 2048
         self.world = []
+        self.size = self.correct_size(self.size)
+
+    def correct_size(self, num):
+        if num < 4 or num > 4096:
+            res = 256
+        else:
+            if int(math.log(num, 2)) == math.log(num, 2):
+                res = int(num)
+            else:
+             res = int(math.pow(2, int(math.log(num, 2))))
+        return int(res)
 
     def get_world(self):
         return self.world
 
     def generate_world(self):
         self.make_empty_world()
-        self.randomize_all()
-        self.make_points()
-        self.clasterize()
+        self.DiamondSquareWorld()
+        #self.randomize_all()
+        #self.make_points()
+        #self.clasterize()
         self.print_world()
 
     def make_empty_world(self):
-        self.world = [[WorldTile.WorldTile() for _ in xrange(self.size)] for _ in xrange(self.size)]
+        self.world = [[WorldTile.WorldTile() for _ in xrange(self.size + 1)] for _ in xrange(self.size + 1)]
 
     def rand_coord(self):
         return random.randint(0, self.size-1)
@@ -72,6 +85,39 @@ class WorldGenerator(object):
                                     maked = True
                         if maked:
                             self.world[xcor][ycor] -= 1
+
+    #diamond-square realization
+    def DiamondSquareWorld(self):
+        distro = self.size / 2 #setting default distortion
+        cornerheight = 4
+
+        def makecorners(wrld):
+            wrld[0][0].resource = cornerheight
+            wrld[0][self.size].resource = cornerheight
+            wrld[self.size][0].resource = cornerheight
+            wrld[self.size][self.size].resource = cornerheight
+            return wrld
+
+        def squared(wrld, cx, cy, r0, dist):
+            if r0 >= 1:
+                rn = random.randint(dist/2, dist)
+                #diamond step
+                wrld[cx][cy].resource = (wrld[cx - r0][cy - r0].resource + wrld[cx - r0][cy + r0].resource + wrld[cx + r0][cy - r0].resource + wrld[cx + r0][cy + r0].resource) / 4 + rn
+                #square step
+                wrld[cx - r0][cy].resource = (wrld[cx - r0][cy - r0].resource + wrld[cx - r0][cy + r0].resource) / 2
+                wrld[cx + r0][cy].resource = (wrld[cx + r0][cy + r0].resource + wrld[cx + r0][cy + r0].resource) / 2
+                wrld[cx][cy + r0].resource = (wrld[cx - r0][cy + r0].resource + wrld[cx + r0][cy + r0].resource) / 2
+                wrld[cx][cy - r0].resource = (wrld[cx - r0][cy - r0].resource + wrld[cx + r0][cy - r0].resource) / 2
+
+                #iterate it
+                wrld = squared(wrld, cx + r0/2, cy + r0/2, r0/2, rn)
+                wrld = squared(wrld, cx - r0/2, cy + r0/2, r0/2, rn)
+                wrld = squared(wrld, cx + r0/2, cy - r0/2, r0/2, rn)
+                wrld = squared(wrld, cx - r0/2, cy - r0/2, r0/2, rn)
+            return wrld
+
+        self.world = makecorners(self.world)
+        self.world = squared(self.world, self.size/2, self.size/2, self.size/2, distro)
 
 if __name__ == '__main__':
     wrld = WorldGenerator()
